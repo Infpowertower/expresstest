@@ -1,0 +1,23 @@
+{
+  "name": "expresstest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.16.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/infpowertower/expresstest.git"
+  },
+  "author": "Robert Richter",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/infpowertower/expresstest/issues"
+  },
+  "homepage": "https://gitlab.com/infpowertower/expresstest#readme"
+}
