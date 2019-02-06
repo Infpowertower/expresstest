@@ -51,6 +51,43 @@ app.get('/data', (_req, res, _next) => {
   res.send(testData);
 })
 
+app.put('/data/:id', (req, res, _next) => {
+  const id = req.params.id;
+  if (testData[id]) {
+    let query = req.query;
+    console.log(query);
+    //(<any>Object ist notwendig, da Typescript assign ansonsten nicht anerkennt)
+    //https://stackoverflow.com/questions/38860161/using-typescript-and-object-assign-gives-me-an-error-property-assign-does-no
+    let result = (<any>Object).assign(testData[id], query);
+    console.log(result);
+    testData[id] = result;
+    res.status(201).send(req.params.id);
+  }
+  else {
+    console.log(req.query);
+    res.status(404).send();
+  }
+})
+
+app.post('/data', (req, res, _next) => {
+  const id = testData.length;
+  let result = req.query;
+  result.id = id;
+  testData.push(result);
+  res.status(201).send(id.toString()); //bug in express
+})
+
+app.delete('/data/:id', (req, res, _next) => {
+  const id = req.params.id;
+  if (testData[id]) {
+    delete testData[id];
+    res.status(204).send();
+  }
+  else {
+    res.status(400).send();
+  }
+})
+
 app.get('/:name', (req, res, _next) => {
   res.send(`Hello ${req.params.name}`);
 })
