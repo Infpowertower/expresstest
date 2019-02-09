@@ -1,14 +1,45 @@
 "use strict";
 exports.__esModule = true;
 var express = require("express");
+var cors = require("cors");
 var app = express();
+app.use(express.json());
 var PORT = 8001;
+var corsOptions = {
+    origin: 'http://localhost:3000',
+    optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+function checkDataTypeMedium(string) {
+    return (string === 'cash'
+        || string === 'bank'
+        || string === 'stock');
+}
+//User Defined Type Guards
+function checkDataTypeDate(date) {
+    //toDo check up on additional keys
+    //toDo check realistic dates
+    return (typeof date.day === 'number'
+        && typeof date.month === 'number'
+        && typeof date.year === 'number');
+}
+function checkDataTypeTransData(object) {
+    //toDo check up on additional keys
+    return (checkDataTypeDate(object.date)
+        && typeof object.value === 'number'
+        && typeof object.category === 'string'
+        && checkDataTypeMedium(object.medium));
+}
 //convention: id = index
-var testData = [{ id: 0, value: 6.97, category: 'testing', medium: 'cash' }];
+var testData = [{ id: 0, value: 6.97, date: { day: 9, month: 2, year: 2019 }, category: 'testing', medium: 'cash' }];
 function fillData(array) {
     for (var i = 1; i < 20; i++) {
         var id = i;
         var value = Math.floor(Math.random() * 1000) / 100;
+        var day = Math.floor(Math.random() * 28) + 1;
+        var month = Math.floor(Math.random() * 12) + 1;
+        var year = Math.floor(Math.random() * 19) + 2000;
+        var date = { day: day, month: month, year: year };
         var category = 'testing';
         var randomValue = Math.floor(Math.random() * 3);
         var medium = void 0;
@@ -21,7 +52,7 @@ function fillData(array) {
         else {
             medium = 'stock';
         }
-        array.push({ id: id, value: value, category: category, medium: medium });
+        array.push({ id: id, value: value, date: date, category: category, medium: medium });
     }
     return array;
 }
@@ -34,10 +65,12 @@ app.get('/data/:id', function (req, res, _next) {
         res.status(404).send();
     }
 });
-app.get('/data', function (_req, res, _next) {
+var dataRouter = express.Router();
+app.use('/data', dataRouter);
+dataRouter.get('/', function (_req, res, _next) {
     res.send(testData);
 });
-app.put('/data/:id', function (req, res, _next) {
+dataRouter.put('/:id', function (req, res, _next) {
     var id = req.params.id;
     if (testData[id]) {
         var query = req.query;
@@ -54,14 +87,19 @@ app.put('/data/:id', function (req, res, _next) {
         res.status(404).send();
     }
 });
-app.post('/data', function (req, res, _next) {
+dataRouter.post('/', function (req, res, _next) {
     var id = testData.length;
-    var result = req.query;
+    var result = req.body;
     result.id = id;
-    testData.push(result);
-    res.status(201).send(id.toString()); //bug in express
+    if (checkDataTypeTransData(result)) {
+        testData.push(result);
+        res.status(201).send(id.toString()); //toString because of bug in express
+    }
+    else {
+        res.status(400).send();
+    }
 });
-app["delete"]('/data/:id', function (req, res, _next) {
+dataRouter["delete"]('/:id', function (req, res, _next) {
     var id = req.params.id;
     if (testData[id]) {
         delete testData[id];

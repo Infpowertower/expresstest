@@ -1,24 +1,74 @@
 import * as express from 'express';
+import * as cors from 'cors';
 
 const app = express();
+app.use(express.json());
 
 const PORT = 8001;
 
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  optionsSuccessStatus: 200,
+}
+
+app.use(cors(corsOptions));
+
+//Custom types/interfaces
 type mediumType = 'cash' | 'bank' | 'stock';
+
+interface Date {
+  day: number,
+  month: number,
+  year: number,
+}
 
 interface transData {
   id: number;
   value: number;
+  date: Date;
   category: String;
   medium: mediumType;
 }
-//convention: id = index
-let testData: transData[] = [{id: 0, value: 6.97, category: 'testing', medium: 'cash'}]
 
+function checkDataTypeMedium(string: any): string is mediumType {
+  return (
+    string === 'cash'
+    || string === 'bank'
+    || string === 'stock'
+  )
+}
+
+//User Defined Type Guards
+function checkDataTypeDate(date: any): date is Date {
+  //toDo check up on additional keys
+  //toDo check realistic dates
+  return (
+    typeof date.day === 'number'
+    && typeof date.month === 'number'
+    && typeof date.year === 'number'
+  )
+}
+
+function checkDataTypeTransData(object: any): object is transData {
+  //toDo check up on additional keys
+  return (
+    checkDataTypeDate(object.date)
+    && typeof object.value === 'number'
+    && typeof object.category === 'string'
+    && checkDataTypeMedium(object.medium)
+  );
+}
+
+//convention: id = index
+let testData: transData[] = [{id: 0, value: 6.97, date: {day: 9, month: 2, year: 2019}, category: 'testing', medium: 'cash'}]
 function fillData(array: transData[]): transData[] {
   for(let i = 1; i < 20; i++) {
     const id = i;
     const value = Math.floor(Math.random()*1000)/100;
+    const day = Math.floor(Math.random()*28)+1;
+    const month = Math.floor(Math.random()*12)+1;
+    const year = Math.floor(Math.random()*19)+2000;
+    const date = {day: day, month: month, year: year};
     const category = 'testing';
     const randomValue = Math.floor(Math.random()*3);
     let medium: mediumType;
@@ -31,11 +81,10 @@ function fillData(array: transData[]): transData[] {
     else {
       medium = 'stock';
     }
-    array.push({id: id, value: value, category: category, medium: medium});
+    array.push({id: id, value: value, date: date, category: category, medium: medium});
   }
   return array;
 }
-
 fillData(testData);
 
 app.get('/data/:id', (req, res, _next) => {
@@ -47,11 +96,15 @@ app.get('/data/:id', (req, res, _next) => {
   }
 })
 
-app.get('/data', (_req, res, _next) => {
+const dataRouter = express.Router();
+
+app.use('/data', dataRouter);
+
+dataRouter.get('/', (_req, res, _next) => {
   res.send(testData);
 })
 
-app.put('/data/:id', (req, res, _next) => {
+dataRouter.put('/:id', (req, res, _next) => {
   const id = req.params.id;
   if (testData[id]) {
     let query = req.query;
@@ -69,15 +122,22 @@ app.put('/data/:id', (req, res, _next) => {
   }
 })
 
-app.post('/data', (req, res, _next) => {
+
+
+dataRouter.post('/', (req, res, _next) => {
   const id = testData.length;
-  let result = req.query;
+  let result = req.body;
   result.id = id;
-  testData.push(result);
-  res.status(201).send(id.toString()); //bug in express
+  if (checkDataTypeTransData(result)) {
+    testData.push(result);
+    res.status(201).send(id.toString()); //toString because of bug in express
+  }
+  else {
+    res.status(400).send();
+  }
 })
 
-app.delete('/data/:id', (req, res, _next) => {
+dataRouter.delete('/:id', (req, res, _next) => {
   const id = req.params.id;
   if (testData[id]) {
     delete testData[id];
