@@ -16,20 +16,6 @@ app.use(cors(corsOptions));
 //Custom types/interfaces
 type mediumType = 'cash' | 'bank' | 'stock';
 
-interface Date {
-  day: number,
-  month: number,
-  year: number,
-}
-
-interface transData {
-  id: number;
-  value: number;
-  date: Date;
-  category: String;
-  medium: mediumType;
-}
-
 function checkDataTypeMedium(string: any): string is mediumType {
   return (
     string === 'cash'
@@ -39,7 +25,7 @@ function checkDataTypeMedium(string: any): string is mediumType {
 }
 
 //User Defined Type Guards
-function checkDataTypeDate(date: any): date is Date {
+/*function checkDataTypeDate(date: any): date is Date {
   //toDo check up on additional keys
   //toDo check realistic dates
   return (
@@ -57,18 +43,19 @@ function checkDataTypeTransData(object: any): object is transData {
     && typeof object.category === 'string'
     && checkDataTypeMedium(object.medium)
   );
-}
+}*/
 
 //convention: id = index
-let testData: transData[] = [{id: 0, value: 6.97, date: {day: 9, month: 2, year: 2019}, category: 'testing', medium: 'cash'}]
-function fillData(array: transData[]): transData[] {
+let testData = {columns: [{id: 'number'}, {value: 'number'}, {date: 'date'}, {category: 'string'}, {medium: 'string'}], data: [[0,6.97,{day: 9, month: 2, year: 2019},'testing','cash']]};
+
+function fillData() {
   for(let i = 1; i < 20; i++) {
     const id = i;
     const value = Math.floor(Math.random()*1000)/100;
     const day = Math.floor(Math.random()*28)+1;
     const month = Math.floor(Math.random()*12)+1;
     const year = Math.floor(Math.random()*19)+2000;
-    const date = {day: day, month: month, year: year};
+    const date = [day, month, year];
     const category = 'testing';
     const randomValue = Math.floor(Math.random()*3);
     let medium: mediumType;
@@ -81,11 +68,10 @@ function fillData(array: transData[]): transData[] {
     else {
       medium = 'stock';
     }
-    array.push({id: id, value: value, date: date, category: category, medium: medium});
+    testData.data.push([id, value, date, category, medium]);
   }
-  return array;
 }
-fillData(testData);
+fillData();
 
 app.get('/data/:id', (req, res, _next) => {
   if (testData[req.params.id]) {

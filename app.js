@@ -16,30 +16,35 @@ function checkDataTypeMedium(string) {
         || string === 'stock');
 }
 //User Defined Type Guards
-function checkDataTypeDate(date) {
-    //toDo check up on additional keys
-    //toDo check realistic dates
-    return (typeof date.day === 'number'
-        && typeof date.month === 'number'
-        && typeof date.year === 'number');
+/*function checkDataTypeDate(date: any): date is Date {
+  //toDo check up on additional keys
+  //toDo check realistic dates
+  return (
+    typeof date.day === 'number'
+    && typeof date.month === 'number'
+    && typeof date.year === 'number'
+  )
 }
-function checkDataTypeTransData(object) {
-    //toDo check up on additional keys
-    return (checkDataTypeDate(object.date)
-        && typeof object.value === 'number'
-        && typeof object.category === 'string'
-        && checkDataTypeMedium(object.medium));
-}
+
+function checkDataTypeTransData(object: any): object is transData {
+  //toDo check up on additional keys
+  return (
+    checkDataTypeDate(object.date)
+    && typeof object.value === 'number'
+    && typeof object.category === 'string'
+    && checkDataTypeMedium(object.medium)
+  );
+}*/
 //convention: id = index
-var testData = [{ id: 0, value: 6.97, date: { day: 9, month: 2, year: 2019 }, category: 'testing', medium: 'cash' }];
-function fillData(array) {
+var testData = { columns: [{ id: 'number' }, { value: 'number' }, { date: 'date' }, { category: 'string' }, { medium: 'string' }], data: [[0, 6.97, { day: 9, month: 2, year: 2019 }, 'testing', 'cash']] };
+function fillData() {
     for (var i = 1; i < 20; i++) {
         var id = i;
         var value = Math.floor(Math.random() * 1000) / 100;
         var day = Math.floor(Math.random() * 28) + 1;
         var month = Math.floor(Math.random() * 12) + 1;
         var year = Math.floor(Math.random() * 19) + 2000;
-        var date = { day: day, month: month, year: year };
+        var date = [day, month, year];
         var category = 'testing';
         var randomValue = Math.floor(Math.random() * 3);
         var medium = void 0;
@@ -52,11 +57,10 @@ function fillData(array) {
         else {
             medium = 'stock';
         }
-        array.push({ id: id, value: value, date: date, category: category, medium: medium });
+        testData.data.push([id, value, date, category, medium]);
     }
-    return array;
 }
-fillData(testData);
+fillData();
 app.get('/data/:id', function (req, res, _next) {
     if (testData[req.params.id]) {
         res.send(testData[req.params.id]);
