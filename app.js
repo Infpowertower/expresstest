@@ -2,6 +2,7 @@
 exports.__esModule = true;
 var express = require("express");
 var cors = require("cors");
+var postgres_js_1 = require("./postgres.js");
 var app = express();
 app.use(express.json());
 var PORT = 8001;
@@ -30,6 +31,7 @@ function checkDataTypeTransData(object) {
         && typeof object.category === 'string'
         && checkDataTypeMedium(object.medium));
 }
+var db = new postgres_js_1.database();
 //convention: id = index
 var testData = [{ id: 0, value: 6.97, date: { day: 9, month: 2, year: 2019 }, category: 'testing', medium: 'cash' }];
 function fillData(array) {
@@ -53,10 +55,12 @@ function fillData(array) {
             medium = 'stock';
         }
         array.push({ id: id, value: value, date: date, category: category, medium: medium });
+        db.insert(value, date.year + "-" + date.month + "-" + date.year, category, medium);
     }
     return array;
 }
 fillData(testData);
+db.selectAll();
 app.get('/data/:id', function (req, res, _next) {
     if (testData[req.params.id]) {
         res.send(testData[req.params.id]);

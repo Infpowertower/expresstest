@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as cors from 'cors';
+import { database } from './postgres.js';
 
 const app = express();
 app.use(express.json());
@@ -59,6 +60,8 @@ function checkDataTypeTransData(object: any): object is transData {
   );
 }
 
+const db = new database();
+
 //convention: id = index
 let testData: transData[] = [{id: 0, value: 6.97, date: {day: 9, month: 2, year: 2019}, category: 'testing', medium: 'cash'}]
 function fillData(array: transData[]): transData[] {
@@ -82,10 +85,13 @@ function fillData(array: transData[]): transData[] {
       medium = 'stock';
     }
     array.push({id: id, value: value, date: date, category: category, medium: medium});
+    db.insert(value, `${date.year}-${date.month}-${date.year}`, category, medium);
   }
   return array;
 }
 fillData(testData);
+
+db.selectAll();
 
 app.get('/data/:id', (req, res, _next) => {
   if (testData[req.params.id]) {
