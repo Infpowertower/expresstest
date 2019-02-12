@@ -14,7 +14,7 @@ export class database {
         this.db = pgp(con_obj);
     }
     insert(value, date, category, medium) {
-        this.db.any(`INSERT INTO test_data(value, date, category, medium) VALUES (${value}, ${date}, ${category}, ${medium})`)
+        this.db.any(`INSERT INTO test_data(value, date, category, medium) VALUES ('${value}', '${date}', '${category}', '${medium}')`)
             .catch((error) => {
                 console.error(error);
             })
@@ -32,3 +32,7 @@ export class database {
         this.db.close();
     }
 }
+
+const db = new database();
+//db.insert(13, "2019-02-01", "testing", "bank");
+db.selectAll();

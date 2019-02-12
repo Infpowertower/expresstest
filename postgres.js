@@ -13,7 +13,7 @@ var database = /** @class */ (function () {
         this.db = pgp(con_obj);
     }
     database.prototype.insert = function (value, date, category, medium) {
-        this.db.any("INSERT INTO test_data(value, date, category, medium) VALUES (" + value + ", " + date + ", " + category + ", " + medium + ")")["catch"](function (error) {
+        this.db.any("INSERT INTO test_data(value, date, category, medium) VALUES ('" + value + "', '" + date + "', '" + category + "', '" + medium + "')")["catch"](function (error) {
             console.error(error);
         });
     };
@@ -31,3 +31,6 @@ var database = /** @class */ (function () {
     return database;
 }());
 exports.database = database;
+var db = new database();
+//db.insert(13, "2019-02-01", "testing", "bank");
+db.selectAll();
