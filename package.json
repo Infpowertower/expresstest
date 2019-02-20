@@ -4,9 +4,14 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "@types/node": "^11.9.4",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "mkdirp": "^0.5.1",
+    "nodemon": "^1.18.10",
+    "pg-promise": "^8.5.5",
+    "sqlite3": "^4.0.6"
   },
   "devDependencies": {},
   "scripts": {
