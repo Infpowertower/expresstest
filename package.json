@@ -4,6 +4,7 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "@types/mkdirp": "^0.5.2",
     "@types/node": "^11.9.4",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
