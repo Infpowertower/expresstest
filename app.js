@@ -1,14 +1,15 @@
 "use strict";
-exports.__esModule = true;
-var express = require("express");
-var cors = require("cors");
+Object.defineProperty(exports, "__esModule", { value: true });
+var express = require('express');
+var cors = require('cors');
 var sqlite_js_1 = require("./sqlite.js");
+var user_js_1 = require("./user.js");
 var app = express();
 app.use(express.json());
-var PORT = 8001;
+var PORT = 8002;
 var corsOptions = {
     origin: 'http://localhost:3000',
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 function checkDataTypeMedium(string) {
@@ -31,7 +32,8 @@ function checkDataTypeTransData(object) {
         && typeof object.category === 'string'
         && checkDataTypeMedium(object.medium));
 }
-var db = new sqlite_js_1.database();
+var db = new sqlite_js_1.Database();
+var user = new user_js_1.User(db);
 //convention: id = index
 var testData = [{ id: 0, value: 6.97, date: { day: 9, month: 2, year: 2019 }, category: 'testing', medium: 'cash' }];
 function fillData(array) {
@@ -61,6 +63,29 @@ function fillData(array) {
 }
 fillData(testData);
 //db.selectAll();
+var dataRouter = express.Router();
+var loginRouter = express.Router();
+app.use('/data', dataRouter);
+app.use('/login', loginRouter);
+app.get('/login/:name', function (req, res, next) {
+    var name = req.params.name;
+    res.send(name);
+    /*
+    const password = req.params.password;
+    console.log(name, password);
+    user.login(name, password)
+    .then(success => {
+      if (success) res.send(201)
+      else res.send(400)
+    })
+    .catch((error) => {
+      console.error(error);
+      res.send(500);
+    })*/
+});
+dataRouter.get('/', function (_req, res, _next) {
+    res.send(testData);
+});
 app.get('/data/:id', function (req, res, _next) {
     if (testData[req.params.id]) {
         res.send(testData[req.params.id]);
@@ -68,11 +93,6 @@ app.get('/data/:id', function (req, res, _next) {
     else {
         res.status(404).send();
     }
-});
-var dataRouter = express.Router();
-app.use('/data', dataRouter);
-dataRouter.get('/', function (_req, res, _next) {
-    res.send(testData);
 });
 dataRouter.put('/:id', function (req, res, _next) {
     var id = req.params.id;
@@ -103,7 +123,7 @@ dataRouter.post('/', function (req, res, _next) {
         res.status(400).send();
     }
 });
-dataRouter["delete"]('/:id', function (req, res, _next) {
+dataRouter.delete('/:id', function (req, res, _next) {
     var id = req.params.id;
     if (testData[id]) {
         delete testData[id];
@@ -112,12 +132,6 @@ dataRouter["delete"]('/:id', function (req, res, _next) {
     else {
         res.status(400).send();
     }
-});
-app.get('/:name', function (req, res, _next) {
-    res.send("Hello " + req.params.name);
-});
-app.get('/', function (_req, res, _next) {
-    res.send("Hello world!");
 });
 app.listen(PORT, function () {
     console.log("Server is listening to port " + PORT);

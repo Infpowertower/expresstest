@@ -1,8 +1,8 @@
 import { databaseTemplate } from './database.js';
 const sqlite3 = require('sqlite3').verbose();
-import mkdirp = require('mkdirp');
+import * as mkdirp from 'mkdirp';
 
-export class database extends databaseTemplate {
+export class Database extends databaseTemplate {
   constructor() {
     super();
     mkdirp('./db', (error) => {
@@ -41,7 +41,6 @@ export class database extends databaseTemplate {
       this.db.all(`SELECT ${select} FROM sqlite_master WHERE type="table";`, (error: any, rows: {} | PromiseLike<{}>) => {
         if (error) reject(error);
         else {
-          console.log(rows);
           resolve(rows);
         }
       })
@@ -64,16 +63,11 @@ export class database extends databaseTemplate {
     return new Promise((resolve, reject) => {
       this.db.serialize(() => {
         let columnStr = columns.toString();
-        /*let placeholder = values.map((value) => {
-          return '('+columns.map(column => {return '?'}).join(',')+')';
-        }).join(',');*/
         let placeholder = columns.map((_column: any) => {return '?'}).join(',');
-        console.log(placeholder);
         const statement = this.db.prepare(`INSERT INTO ${table} (${columnStr}) VALUES (${placeholder})`);
         for (let i = 0; i < values.length; i++) {
           statement.run(values[i]);
         }
-        console.log(statement);
         try {
           statement.finalize();
           resolve();
@@ -86,8 +80,19 @@ export class database extends databaseTemplate {
     });
   };
 
+  get(table: string, column: string, condition: string) {
+    return new Promise((resolve, reject) => {
+      this.db.get(`SELECT ${column} FROM ${table} WHERE ${condition}`, (error, row) => {
+        if (error) reject(error)
+        else {
+          resolve(row)
+        };
+      })
+    })
+  }
+
   delete() {
-    
+
   }
 
   selectAll(table: string) {
@@ -113,14 +118,17 @@ export class database extends databaseTemplate {
   }
 }
 
-const db = new database();
-Promise.all([
-  db.selectAll('test'),
-  db.selectAll('user').then((output) => console.log(output)),
-])
-.catch((error) => {
-  console.error(error);
-})
-.finally(() => {
-  db.close();
-})
+function test() {
+  const db = new Database();
+  //db.selectAll('user').then((output) => console.log(output))
+  db.dropTable('user')
+  .then(() => db.initialize())
+  .finally(() => {
+    db.close();
+  })
+  .catch((error) => {
+    console.error(error);
+  })
+}
+
+//test();

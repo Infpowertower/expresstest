@@ -9,7 +9,7 @@ const con_obj = {
     password: 'finanzreport',
 }
 
-export class database extends databaseTemplate {
+export class Database extends databaseTemplate {
     constructor() {
       super();
       this.db = pgp(con_obj);
@@ -34,6 +34,6 @@ export class database extends databaseTemplate {
     }
 }
 
-const db = new database();
+const db = new Database();
 //db.insert(13, "2019-02-01", "testing", "bank");
 db.selectAll();

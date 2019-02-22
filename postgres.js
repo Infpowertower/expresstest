@@ -12,7 +12,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 var pgp = require('pg-promise')();
 var database_js_1 = require("./database.js");
 var con_obj = {
@@ -20,34 +20,36 @@ var con_obj = {
     port: 5432,
     database: 'finanzreport',
     user: 'finanzreport',
-    password: 'finanzreport'
+    password: 'finanzreport',
 };
-var database = /** @class */ (function (_super) {
-    __extends(database, _super);
-    function database() {
+var Database = /** @class */ (function (_super) {
+    __extends(Database, _super);
+    function Database() {
         var _this = _super.call(this) || this;
         _this.db = pgp(con_obj);
         return _this;
     }
-    database.prototype.insert = function (value, date, category, medium) {
-        this.db.any("INSERT INTO test_data(value, date, category, medium) VALUES ('" + value + "', '" + date + "', '" + category + "', '" + medium + "')")["catch"](function (error) {
+    Database.prototype.insert = function (value, date, category, medium) {
+        this.db.any("INSERT INTO test_data(value, date, category, medium) VALUES ('" + value + "', '" + date + "', '" + category + "', '" + medium + "')")
+            .catch(function (error) {
             console.error(error);
         });
     };
-    database.prototype.selectAll = function () {
+    Database.prototype.selectAll = function () {
         this.db.any('SELECT * from test_data')
             .then(function (data) {
             console.log('DATA:', data);
-        })["catch"](function (error) {
+        })
+            .catch(function (error) {
             console.error(error);
         });
     };
-    database.prototype.close = function () {
+    Database.prototype.close = function () {
         this.db.close();
     };
-    return database;
+    return Database;
 }(database_js_1.databaseTemplate));
-exports.database = database;
-var db = new database();
+exports.Database = Database;
+var db = new Database();
 //db.insert(13, "2019-02-01", "testing", "bank");
 db.selectAll();

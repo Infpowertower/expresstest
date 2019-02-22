@@ -6,6 +6,7 @@
   "dependencies": {
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^11.9.4",
+    "argon2": "^0.20.1",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "express": "^4.16.4",

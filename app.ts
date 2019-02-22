@@ -1,11 +1,12 @@
-import * as express from 'express';
-import * as cors from 'cors';
-import { database } from './sqlite.js';
+const express = require('express');
+const cors = require('cors');
+import { Database } from './sqlite.js';
+import { User } from './user.js';
 
 const app = express();
 app.use(express.json());
 
-const PORT = 8001;
+const PORT = 8002;
 
 const corsOptions = {
   origin: 'http://localhost:3000',
@@ -60,7 +61,8 @@ function checkDataTypeTransData(object: any): object is transData {
   );
 }
 
-const db = new database();
+const db = new Database();
+const user = new User(db);
 
 //convention: id = index
 let testData: transData[] = [{id: 0, value: 6.97, date: {day: 9, month: 2, year: 2019}, category: 'testing', medium: 'cash'}]
@@ -93,6 +95,33 @@ fillData(testData);
 
 //db.selectAll();
 
+const dataRouter = express.Router();
+const loginRouter = express.Router();
+
+app.use('/data', dataRouter);
+app.use('/login', loginRouter);
+
+app.get('/login/:name', (req, res, next) => {
+  const name = req.params.name;
+  res.send(name);
+  /*
+  const password = req.params.password;
+  console.log(name, password);
+  user.login(name, password)
+  .then(success => {
+    if (success) res.send(201)
+    else res.send(400)
+  })
+  .catch((error) => {
+    console.error(error);
+    res.send(500);
+  })*/
+})
+
+dataRouter.get('/', (_req, res, _next) => {
+  res.send(testData);
+})
+
 app.get('/data/:id', (req, res, _next) => {
   if (testData[req.params.id]) {
     res.send(testData[req.params.id])
@@ -100,14 +129,6 @@ app.get('/data/:id', (req, res, _next) => {
   else {
     res.status(404).send();
   }
-})
-
-const dataRouter = express.Router();
-
-app.use('/data', dataRouter);
-
-dataRouter.get('/', (_req, res, _next) => {
-  res.send(testData);
 })
 
 dataRouter.put('/:id', (req, res, _next) => {
@@ -152,14 +173,6 @@ dataRouter.delete('/:id', (req, res, _next) => {
   else {
     res.status(400).send();
   }
-})
-
-app.get('/:name', (req, res, _next) => {
-  res.send(`Hello ${req.params.name}`);
-})
-
-app.get('/', (_req, res, _next) => {
-  res.send("Hello world!");
 })
 
 app.listen(PORT, () => {
