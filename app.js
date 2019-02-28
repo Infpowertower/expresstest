@@ -6,7 +6,7 @@ var sqlite_js_1 = require("./sqlite.js");
 var user_js_1 = require("./user.js");
 var app = express();
 app.use(express.json());
-var PORT = 8002;
+var PORT = 8001;
 var corsOptions = {
     origin: 'http://localhost:3000',
     optionsSuccessStatus: 200,
@@ -67,21 +67,25 @@ var dataRouter = express.Router();
 var loginRouter = express.Router();
 app.use('/data', dataRouter);
 app.use('/login', loginRouter);
-app.get('/login/:name', function (req, res, next) {
-    var name = req.params.name;
-    res.send(name);
-    /*
-    const password = req.params.password;
+app.get('/login', function (req, res, next) {
+    res.send("Hello Login!");
+});
+app.post('/login', function (req, res, next) {
+    console.log(req.body);
+    var name = req.body.name;
+    var password = req.body.password;
     console.log(name, password);
     user.login(name, password)
-    .then(success => {
-      if (success) res.send(201)
-      else res.send(400)
+        .then(function (success) {
+        if (success)
+            res.send("Success!");
+        else
+            res.sendStatus(400);
     })
-    .catch((error) => {
-      console.error(error);
-      res.send(500);
-    })*/
+        .catch(function (error) {
+        console.error(error);
+        res.send(500);
+    });
 });
 dataRouter.get('/', function (_req, res, _next) {
     res.send(testData);

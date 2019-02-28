@@ -6,7 +6,7 @@ import { User } from './user.js';
 const app = express();
 app.use(express.json());
 
-const PORT = 8002;
+const PORT = 8001;
 
 const corsOptions = {
   origin: 'http://localhost:3000',
@@ -101,21 +101,24 @@ const loginRouter = express.Router();
 app.use('/data', dataRouter);
 app.use('/login', loginRouter);
 
-app.get('/login/:name', (req, res, next) => {
-  const name = req.params.name;
-  res.send(name);
-  /*
-  const password = req.params.password;
+
+app.get('/login', (req, res, next) => {
+  res.send("Hello Login!");
+})
+app.post('/login', (req, res, next) => {
+  console.log(req.body);
+  const name = req.body.name;
+  const password = req.body.password;
   console.log(name, password);
   user.login(name, password)
   .then(success => {
-    if (success) res.send(201)
-    else res.send(400)
+    if (success) res.send("Success!")
+    else res.sendStatus(400)
   })
   .catch((error) => {
     console.error(error);
     res.send(500);
-  })*/
+  })
 })
 
 dataRouter.get('/', (_req, res, _next) => {
