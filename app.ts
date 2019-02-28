@@ -112,7 +112,10 @@ app.post('/login', (req, res, next) => {
   console.log(name, password);
   user.login(name, password)
   .then(success => {
-    if (success) res.send("Success!")
+    if (success) {
+      console.log("test")
+      res.sendStatus(200)
+    }
     else res.sendStatus(400)
   })
   .catch((error) => {

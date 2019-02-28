@@ -77,8 +77,10 @@ app.post('/login', function (req, res, next) {
     console.log(name, password);
     user.login(name, password)
         .then(function (success) {
-        if (success)
-            res.send("Success!");
+        if (success) {
+            console.log("test");
+            res.sendStatus(200);
+        }
         else
             res.sendStatus(400);
     })
