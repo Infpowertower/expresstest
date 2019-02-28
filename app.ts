@@ -1,6 +1,7 @@
-import * as express from 'express';
-import * as cors from 'cors';
-import { database } from './postgres.js';
+const express = require('express');
+const cors = require('cors');
+import { Database } from './sqlite.js';
+import { User } from './user.js';
 
 const app = express();
 app.use(express.json());
@@ -17,6 +18,20 @@ app.use(cors(corsOptions));
 //Custom types/interfaces
 type mediumType = 'cash' | 'bank' | 'stock';
 
+interface Date {
+  day: number,
+  month: number,
+  year: number,
+}
+
+interface transData {
+  id: number;
+  value: number;
+  date: Date;
+  category: String;
+  medium: mediumType;
+}
+
 function checkDataTypeMedium(string: any): string is mediumType {
   return (
     string === 'cash'
@@ -26,7 +41,7 @@ function checkDataTypeMedium(string: any): string is mediumType {
 }
 
 //User Defined Type Guards
-/*function checkDataTypeDate(date: any): date is Date {
+function checkDataTypeDate(date: any): date is Date {
   //toDo check up on additional keys
   //toDo check realistic dates
   return (
@@ -44,21 +59,21 @@ function checkDataTypeTransData(object: any): object is transData {
     && typeof object.category === 'string'
     && checkDataTypeMedium(object.medium)
   );
-}*/
+}
 
-const db = new database();
+const db = new Database();
+const user = new User(db);
 
 //convention: id = index
-let testData = {columns: [{id: 'number'}, {value: 'number'}, {date: 'date'}, {category: 'string'}, {medium: 'string'}], data: [[0,6.97,{day: 9, month: 2, year: 2019},'testing','cash']]};
-
-function fillData() {
+let testData: transData[] = [{id: 0, value: 6.97, date: {day: 9, month: 2, year: 2019}, category: 'testing', medium: 'cash'}]
+function fillData(array: transData[]): transData[] {
   for(let i = 1; i < 20; i++) {
     const id = i;
     const value = Math.floor(Math.random()*1000)/100;
     const day = Math.floor(Math.random()*28)+1;
     const month = Math.floor(Math.random()*12)+1;
     const year = Math.floor(Math.random()*19)+2000;
-    const date = [day, month, year];
+    const date = {day: day, month: month, year: year};
     const category = 'testing';
     const randomValue = Math.floor(Math.random()*3);
     let medium: mediumType;
@@ -71,13 +86,44 @@ function fillData() {
     else {
       medium = 'stock';
     }
-    testData.data.push([id, value, date, category, medium]);
-    db.insert(value, `${date.year}-${date.month}-${date.year}`, category, medium);
+    array.push({id: id, value: value, date: date, category: category, medium: medium});
+    //db.insert(value, `${date.year}-${date.month}-${date.year}`, category, medium);
   }
+  return array;
 }
-fillData();
+fillData(testData);
 
-db.selectAll();
+//db.selectAll();
+
+const dataRouter = express.Router();
+const loginRouter = express.Router();
+
+app.use('/data', dataRouter);
+app.use('/login', loginRouter);
+
+
+app.get('/login', (req, res, next) => {
+  res.send("Hello Login!");
+})
+app.post('/login', (req, res, next) => {
+  console.log(req.body);
+  const name = req.body.name;
+  const password = req.body.password;
+  console.log(name, password);
+  user.login(name, password)
+  .then(success => {
+    if (success) res.send("Success!")
+    else res.sendStatus(400)
+  })
+  .catch((error) => {
+    console.error(error);
+    res.send(500);
+  })
+})
+
+dataRouter.get('/', (_req, res, _next) => {
+  res.send(testData);
+})
 
 app.get('/data/:id', (req, res, _next) => {
   if (testData[req.params.id]) {
@@ -86,14 +132,6 @@ app.get('/data/:id', (req, res, _next) => {
   else {
     res.status(404).send();
   }
-})
-
-const dataRouter = express.Router();
-
-app.use('/data', dataRouter);
-
-dataRouter.get('/', (_req, res, _next) => {
-  res.send(testData);
 })
 
 dataRouter.put('/:id', (req, res, _next) => {
@@ -138,14 +176,6 @@ dataRouter.delete('/:id', (req, res, _next) => {
   else {
     res.status(400).send();
   }
-})
-
-app.get('/:name', (req, res, _next) => {
-  res.send(`Hello ${req.params.name}`);
-})
-
-app.get('/', (_req, res, _next) => {
-  res.send("Hello world!");
 })
 
 app.listen(PORT, () => {

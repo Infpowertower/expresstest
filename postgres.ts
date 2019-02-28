@@ -1,4 +1,5 @@
 const pgp = require('pg-promise')();
+import { databaseTemplate } from './database.js';
 
 const con_obj = {
     host: 'localhost',
@@ -8,10 +9,10 @@ const con_obj = {
     password: 'finanzreport',
 }
 
-export class database {
-    private db: any;
+export class Database extends databaseTemplate {
     constructor() {
-        this.db = pgp(con_obj);
+      super();
+      this.db = pgp(con_obj);
     }
     insert(value, date, category, medium) {
         this.db.any(`INSERT INTO test_data(value, date, category, medium) VALUES ('${value}', '${date}', '${category}', '${medium}')`)
@@ -33,6 +34,6 @@ export class database {
     }
 }
 
-const db = new database();
+const db = new Database();
 //db.insert(13, "2019-02-01", "testing", "bank");
 db.selectAll();

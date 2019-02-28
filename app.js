@@ -1,8 +1,9 @@
 "use strict";
-exports.__esModule = true;
-var express = require("express");
-var cors = require("cors");
-var postgres_js_1 = require("./postgres.js");
+Object.defineProperty(exports, "__esModule", { value: true });
+var express = require('express');
+var cors = require('cors');
+var sqlite_js_1 = require("./sqlite.js");
+var user_js_1 = require("./user.js");
 var app = express();
 app.use(express.json());
 var PORT = 8001;
@@ -17,36 +18,32 @@ function checkDataTypeMedium(string) {
         || string === 'stock');
 }
 //User Defined Type Guards
-/*function checkDataTypeDate(date: any): date is Date {
-  //toDo check up on additional keys
-  //toDo check realistic dates
-  return (
-    typeof date.day === 'number'
-    && typeof date.month === 'number'
-    && typeof date.year === 'number'
-  )
+function checkDataTypeDate(date) {
+    //toDo check up on additional keys
+    //toDo check realistic dates
+    return (typeof date.day === 'number'
+        && typeof date.month === 'number'
+        && typeof date.year === 'number');
 }
-
-function checkDataTypeTransData(object: any): object is transData {
-  //toDo check up on additional keys
-  return (
-    checkDataTypeDate(object.date)
-    && typeof object.value === 'number'
-    && typeof object.category === 'string'
-    && checkDataTypeMedium(object.medium)
-  );
-}*/
-var db = new postgres_js_1.database();
+function checkDataTypeTransData(object) {
+    //toDo check up on additional keys
+    return (checkDataTypeDate(object.date)
+        && typeof object.value === 'number'
+        && typeof object.category === 'string'
+        && checkDataTypeMedium(object.medium));
+}
+var db = new sqlite_js_1.Database();
+var user = new user_js_1.User(db);
 //convention: id = index
-var testData = { columns: [{ id: 'number' }, { value: 'number' }, { date: 'date' }, { category: 'string' }, { medium: 'string' }], data: [[0, 6.97, { day: 9, month: 2, year: 2019 }, 'testing', 'cash']] };
-function fillData() {
+var testData = [{ id: 0, value: 6.97, date: { day: 9, month: 2, year: 2019 }, category: 'testing', medium: 'cash' }];
+function fillData(array) {
     for (var i = 1; i < 20; i++) {
         var id = i;
         var value = Math.floor(Math.random() * 1000) / 100;
         var day = Math.floor(Math.random() * 28) + 1;
         var month = Math.floor(Math.random() * 12) + 1;
         var year = Math.floor(Math.random() * 19) + 2000;
-        var date = [day, month, year];
+        var date = { day: day, month: month, year: year };
         var category = 'testing';
         var randomValue = Math.floor(Math.random() * 3);
         var medium = void 0;
@@ -59,12 +56,40 @@ function fillData() {
         else {
             medium = 'stock';
         }
-        testData.data.push([id, value, date, category, medium]);
-        db.insert(value, date.year + "-" + date.month + "-" + date.year, category, medium);
+        array.push({ id: id, value: value, date: date, category: category, medium: medium });
+        //db.insert(value, `${date.year}-${date.month}-${date.year}`, category, medium);
     }
+    return array;
 }
-fillData();
-db.selectAll();
+fillData(testData);
+//db.selectAll();
+var dataRouter = express.Router();
+var loginRouter = express.Router();
+app.use('/data', dataRouter);
+app.use('/login', loginRouter);
+app.get('/login', function (req, res, next) {
+    res.send("Hello Login!");
+});
+app.post('/login', function (req, res, next) {
+    console.log(req.body);
+    var name = req.body.name;
+    var password = req.body.password;
+    console.log(name, password);
+    user.login(name, password)
+        .then(function (success) {
+        if (success)
+            res.send("Success!");
+        else
+            res.sendStatus(400);
+    })
+        .catch(function (error) {
+        console.error(error);
+        res.send(500);
+    });
+});
+dataRouter.get('/', function (_req, res, _next) {
+    res.send(testData);
+});
 app.get('/data/:id', function (req, res, _next) {
     if (testData[req.params.id]) {
         res.send(testData[req.params.id]);
@@ -72,11 +97,6 @@ app.get('/data/:id', function (req, res, _next) {
     else {
         res.status(404).send();
     }
-});
-var dataRouter = express.Router();
-app.use('/data', dataRouter);
-dataRouter.get('/', function (_req, res, _next) {
-    res.send(testData);
 });
 dataRouter.put('/:id', function (req, res, _next) {
     var id = req.params.id;
@@ -107,7 +127,7 @@ dataRouter.post('/', function (req, res, _next) {
         res.status(400).send();
     }
 });
-dataRouter["delete"]('/:id', function (req, res, _next) {
+dataRouter.delete('/:id', function (req, res, _next) {
     var id = req.params.id;
     if (testData[id]) {
         delete testData[id];
@@ -116,12 +136,6 @@ dataRouter["delete"]('/:id', function (req, res, _next) {
     else {
         res.status(400).send();
     }
-});
-app.get('/:name', function (req, res, _next) {
-    res.send("Hello " + req.params.name);
-});
-app.get('/', function (_req, res, _next) {
-    res.send("Hello world!");
 });
 app.listen(PORT, function () {
     console.log("Server is listening to port " + PORT);
