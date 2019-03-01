@@ -89,6 +89,19 @@ app.post('/login', function (req, res, next) {
         res.send(500);
     });
 });
+app.post('/register', function (req, res, _next) {
+    console.log(req.body);
+    var name = req.body.name;
+    var password = req.body.password;
+    console.log(name, password);
+    user.create(name, password)
+        .then(function (success) {
+        if (success)
+            res.sendStatus(200);
+        else { }
+    })
+        .catch(function (error) { console.error(error); res.sendStatus(500); });
+});
 dataRouter.get('/', function (_req, res, _next) {
     res.send(testData);
 });

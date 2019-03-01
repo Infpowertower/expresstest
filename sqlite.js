@@ -25,7 +25,7 @@ var Database = /** @class */ (function (_super) {
                 console.error(error);
         });
         _this.db = new sqlite3.Database('./db/test.db');
-        if (!_this.checkDB()) {
+        if (!_this.checkDB().catch(function (error) { return console.error(error); })) {
             _this.initialize();
         }
         return _this;
@@ -35,8 +35,7 @@ var Database = /** @class */ (function (_super) {
         return new Promise(function (resolve, reject) {
             _this.db.all('SELECT name FROM sqlite_master WHERE type="table";', function (error, rows) {
                 if (error) {
-                    console.error(error);
-                    reject();
+                    reject(error);
                 }
                 else {
                     var user = false;
@@ -152,11 +151,12 @@ function test() {
     //db.selectAll('user').then((output) => console.log(output))
     db.dropTable('user')
         .then(function () { return db.initialize(); })
-        .finally(function () {
+        .then(function () {
         db.close();
     })
         .catch(function (error) {
         console.error(error);
+        db.initialize().catch(function (error) { return console.error(error); });
     });
 }
 //test();

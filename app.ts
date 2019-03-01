@@ -124,6 +124,19 @@ app.post('/login', (req, res, next) => {
   })
 })
 
+app.post('/register', (req, res, _next) => {
+  console.log(req.body);
+  const name = req.body.name;
+  const password = req.body.password;
+  console.log(name, password);
+  user.create(name, password)
+      .then((success) => {
+        if (success) res.sendStatus(200);
+        else {}
+      })
+      .catch((error) => {console.error(error); res.sendStatus(500)})
+})
+
 dataRouter.get('/', (_req, res, _next) => {
   res.send(testData);
 })

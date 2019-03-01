@@ -9,7 +9,7 @@ export class Database extends databaseTemplate {
       if (error) console.error(error)
     })
     this.db = new sqlite3.Database('./db/test.db');
-    if (!this.checkDB()) {
+    if (!this.checkDB().catch((error) => console.error(error))) {
       this.initialize();
     }
   }
@@ -17,8 +17,7 @@ export class Database extends databaseTemplate {
     return new Promise((resolve, reject) => {
       this.db.all('SELECT name FROM sqlite_master WHERE type="table";', (error: any, rows: { name: string; }[]) => {
         if (error) {
-          console.error(error);
-          reject()}
+          reject(error)}
         else {
           let user = false;
           for (let i = 0; i < rows.length; i++) {
@@ -123,11 +122,12 @@ function test() {
   //db.selectAll('user').then((output) => console.log(output))
   db.dropTable('user')
   .then(() => db.initialize())
-  .finally(() => {
+  .then(() => {
     db.close();
   })
   .catch((error) => {
     console.error(error);
+    db.initialize().catch((error) => console.error(error));
   })
 }
 
