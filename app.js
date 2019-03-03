@@ -78,11 +78,13 @@ app.post('/login', function (req, res, next) {
     user.login(name, password)
         .then(function (success) {
         if (success) {
-            console.log("test");
+            console.log("login successful");
             res.sendStatus(200);
         }
-        else
-            res.sendStatus(400);
+        else {
+            console.log("login failed");
+            res.sendStatus(401);
+        }
     })
         .catch(function (error) {
         console.error(error);
@@ -93,7 +95,6 @@ app.post('/register', function (req, res, _next) {
     console.log(req.body);
     var name = req.body.name;
     var password = req.body.password;
-    console.log(name, password);
     user.create(name, password)
         .then(function (success) {
         if (success)

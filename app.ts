@@ -113,10 +113,13 @@ app.post('/login', (req, res, next) => {
   user.login(name, password)
   .then(success => {
     if (success) {
-      console.log("test")
-      res.sendStatus(200)
+      console.log("login successful");
+      res.sendStatus(200);
     }
-    else res.sendStatus(400)
+    else {
+      console.log("login failed");
+      res.sendStatus(401);
+    }
   })
   .catch((error) => {
     console.error(error);
@@ -128,7 +131,6 @@ app.post('/register', (req, res, _next) => {
   console.log(req.body);
   const name = req.body.name;
   const password = req.body.password;
-  console.log(name, password);
   user.create(name, password)
       .then((success) => {
         if (success) res.sendStatus(200);
